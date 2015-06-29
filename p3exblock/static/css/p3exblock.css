@@ -1,0 +1,9 @@
+/* CSS for P3eXBlock */
+
+.p3exblock_block .count {
+    font-weight: bold;
+}
+
+.p3exblock_block p {
+    cursor: pointer;
+}

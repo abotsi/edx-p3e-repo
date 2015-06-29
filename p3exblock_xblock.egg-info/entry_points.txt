@@ -1,0 +1,3 @@
+[xblock.v1]
+p3exblock = p3exblock:P3eXBlock
+

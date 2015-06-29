@@ -1,0 +1,13 @@
+p3exblock/__init__.py
+p3exblock/p3exblock.py
+p3exblock/static/README.txt
+p3exblock/static/css/p3exblock.css
+p3exblock/static/html/p3exblock.html
+p3exblock/static/html/p3exblock.html~
+p3exblock/static/js/src/p3exblock.js
+p3exblock_xblock.egg-info/PKG-INFO
+p3exblock_xblock.egg-info/SOURCES.txt
+p3exblock_xblock.egg-info/dependency_links.txt
+p3exblock_xblock.egg-info/entry_points.txt
+p3exblock_xblock.egg-info/requires.txt
+p3exblock_xblock.egg-info/top_level.txt
