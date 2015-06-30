@@ -1,0 +1,40 @@
+<div class="p3exblock_block">
+    <div id="phase3" class="phase-container" data-phaseNumber=3>
+        <h2 class="phase-title">Third step : Correct</h2>
+        % for elt in data:
+            <div class="question_block">
+                <h4><strong>Question #${loop.index + 1} </strong></h4></br>
+                <p><b>${elt['text']}</b></p>
+                </br>
+
+                <label><u>Solution:</u>
+
+                    <button id="btn_valid3" class="btn btn-default btn-lg">Wrong solution ? Propose another one</button>
+
+                <label>
+                <p>${elt['clue_answer']}</p>
+
+
+
+                </br>
+                </br>
+
+                <label><u>Answer to evaluate :</u></label>
+                <textarea id="r${loop.index + 1}" class="ans" rows="4" cols="80" readonly>${elt['answer_to_evaluate']}</textarea>
+                <p class="grade">Rate this answer :
+                    <input class="form-control note_saver counter_input" size="2" min="0" max="5" type="number" value="0" />
+                </p>
+                <br>
+                <br>
+
+                </div>
+        % endfor
+        <p id="reverse_counter">Remaining points to attribute: 
+            <var id="counter_value">30</var>
+        /30
+        </p>
+        <br>
+        <br>
+        <input id="btn_valid" class="btn btn-default btn-lg" type="submit" value="Valider" disabled="true"/>
+    </div>
+</div>
