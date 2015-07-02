@@ -1,22 +1,16 @@
 <div class="p3exblock_block">
-	<div id="phase2" class="phase-container" data-phaseNumber=2>
-		<h2 class="phase-title">Second step : Ask</h2>
-			<div class="question_block">
-				<h4>Submit your question :</h4>
-				<textarea id="q" rows="6" cols="80"></textarea>
-				<br>
-				<br>
-			
-			</div>
-			<div class="question_block">
-				<h4>Give the answer of your question :</h4>
-				<textarea id="r" rows="6" cols="80"></textarea>
-				<br>
-				<br>
+	<div class="phase-container" data-phaseNumber=2>
+		<h1>Second step : Ask</h1>
 
-			</div>
-			<br>
-			<br>
-		<input id="btn_valid" class="btn btn-default btn-lg" type="submit" value="Phase suivante" />
+		<div class="question_block">
+			<h3>Your question :</h3>
+			<textarea id="q" autocomplete="off" placeholder="Enter a question here..."></textarea>
+		</div>
+		<div class="question_block">
+			<h3>Its answer :</h3>
+			<textarea id="r" autocomplete="off" placeholder="... and give the corresponding answer here"></textarea>
+		</div>
+
+		<button id="btn_valid">Phase suivante</button> 
 	</div>
 </div>

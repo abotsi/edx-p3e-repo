@@ -1,46 +1,63 @@
 /* CSS for P3eXBlock */
 
 .p3exblock_block {
-    border: dashed;
+    padding-left: 20px;
+    text-align: center;
+
+    position: relative;
+
     border-color: #F9359D;
     border-style: inset;
-    border-width: 20px;
+    border-width: 15px;
     border-right-color: white;
     border-bottom-color: white;
-    
-}
-
-h2{
-    text-align: center;
-}
-
-.phase-container {
-    margin-left: 50px;
-}
-
-.phase-title {
-    text-align: center;
 }
 
 .question_block {
+    padding: 10px;
     margin: 50px 0px;
+    text-align: left;
+
     border-style: outset;
-    border-width: 20px;
+    border-width: 15px;
     border-color: #00CED1;
     border-left-color: white;
     border-top-color: white;
-    text-align: left;
+}
+
+h3 {
+    margin-left: 20px;
+}
+h4 {
+    margin-bottom: 0;
+}
+h4.solution-title {
+    display: inline;
+}
+
+.question_block>p {
+    margin-top: 5px;
 }
 
 .grade {
     margin-top: 10px;
 }
 
-#reverse_counter{
+textarea {
+    width: 100%;
+    height: 60px;
+    resize: vertical;
+    box-sizing: border-box;
+}
 
-    position: fixed;
-    top: 100px;
-    right: 10%;
+input[type="number"] {
+    width: 30px;
+}
+
+#reverse_counter {
+    float: right;
+    margin: 0;
+
     border-style: outset;
     border: solid;
     border-right-color: white;
@@ -50,92 +67,6 @@ h2{
     background-color: white;
 }
 
-input[type="number"] {
-    width: 60px;
-    display: inline;
-}
-input[type="submit"] {
-    margin-bottom: 20px;
-}
-@media screen and (min-width: 1000px) {
-    textarea {
-
-        display: block;
-        /*margin-left: auto;
-        margin-right: auto;*/
-        text-align: left;
-    }
-}
-
-
-@media screen and (max-width: 1000px) and (min-width: 750px)  {
-
-    .question_block>textarea {
-
-        display: block;
- /*       margin-left: auto;
-        margin-right: auto;*/
-        text-align: left;
-        width:93%;
-    }
-    textarea {
-
-        display: block;
-        /*margin-left: auto;
-        margin-right: auto;*/
-        text-align: left;
-    }
-
-    .p3exblock_block {
-        border: dashed;
-        border-color: #F9359D;
-        border-style: inset;
-        border-width: 10px;
-        border-right-color: white;
-        border-bottom-color: white;
-    }
-
-    .question_block {
-        margin: 50px 0px;
-        border-style: outset;
-        border-width: 10px;
-        border-color: #00CED1;
-        border-left-color: white;
-        border-top-color: white;
-        text-align: left;
-    }
-
-}
-
-
-@media screen and (max-width: 750px) {
-
-    .question_block>textarea {
-
-        display: block;
-/*        margin-left: auto;
-        margin-right: auto;*/
-        text-align: left;
-        width:93%;
-    }
-
-    .p3exblock_block {
-        border: dashed;
-        border-color: #F9359D;
-        border-style: inset;
-        border-width: 5px;
-        border-right-color: white;
-        border-bottom-color: white;
-    }
-
-    .question_block {
-        margin: 50px 0px;
-        border-style: outset;
-        border-width: 5px;
-        border-color: #00CED1;
-        border-left-color: white;
-        border-top-color: white;
-        text-align: left;
-    }
-
-}
+/*.reverse_counter-fixed {
+    position: fixed;
+}*/

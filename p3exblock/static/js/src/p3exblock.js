@@ -6,22 +6,63 @@ function P3eXBlock(runtime, element) {
     var urlValid2 = runtime.handlerUrl(element, 'validate_phase2');
     var urlValid3 = runtime.handlerUrl(element, 'validate_phase3');
 
-    function change_phase(html_content) {
-        // Replacing the html content by the html of the new phase
-        $(".p3exblock_block").replaceWith(html_content);
-        $("html, body").animate({ scrollTop: 0 }, "slow");
-        bind_btn_to_handler()
-    }
+    var currentPhase = 0;
 
-    function bind_btn_to_handler() {
-        // Setting the handler to call on #btn_valid click
-        if ($("#phase1").length) {
+    function init_phase() {
+        currentPhase = $(".phase-container").attr("data-phaseNumber");
+
+        // Smoothly move to the top
+        $("html, body").animate({ scrollTop: 0 }, "slow");
+
+        // Setting the right handler to call when #btn_valid id clicked
+        if (currentPhase == 1) {
             $('#btn_valid', element).click(validate_phase1);
-        } else if ($("#phase2").length) {
+        } else if (currentPhase == 2) {
             $('#btn_valid', element).click(validate_phase2);
-        } else if ($("#phase3").length) {
+        } else if (currentPhase == 3) {
             $('#btn_valid', element).click(validate_phase3);
         }
+
+        // Updating the counter of points the user can distribute during this phase
+        $(".counter_input").change(function () {
+            var total_points_to_use = 10;
+            if (currentPhase==3)
+                total_points_to_use = 30;
+
+            var sum_points_given = 0;
+            $(".counter_input").each(function () {
+                sum_points_given += parseInt($(this).val());
+            })
+
+            var remaining_points = total_points_to_use - sum_points_given;
+            $("#counter_value").text(remaining_points);
+
+            if (remaining_points==0) {
+                $("#btn_valid").prop( "disabled", false );
+                $("#btn_valid").prop( "title", "");
+            } else{
+                $("#btn_valid").prop( "disabled", true );
+                $("#btn_valid").prop( "title", "Please distribute all points before validating.");
+            };
+        });
+        // Prevent entering letters, negative or decimal numbers
+        $(".counter_input").keypress(function () {
+            return false;
+        });
+
+        // About scrolling of reverse_counter
+        // $(window).on("scroll", function() {
+        //     var w = $(window);
+        //     var counter = $("#reverse_counter");
+        //     var distanceFromTop = counter.offset().top - w.scrollTop();
+        //     console.log("distanceFromTop = counter.offset().top - w.scrollTop() : ", distanceFromTop, " = ", counter.offset().top, " - ", w.scrollTop());
+            
+        //     if (distanceFromTop < 100) {
+        //         counter.addClass("reverse_counter-fixed");
+        //     } else {
+        //         counter.removeClass("reverse_counter-fixed");
+        //     }
+        // });
     }
 
     function validate_phase1(eventObject) {
@@ -65,35 +106,15 @@ function P3eXBlock(runtime, element) {
         });
     }
 
+    function change_phase(html_content) {
+        // Replacing the html content by the html of the new phase
+        $(".p3exblock_block").replaceWith(html_content);
+        init_phase()
+    }
+
 
     $(function ($) {
         /* Here's where you'd do things on page load. */
-        bind_btn_to_handler();
-
-        // Updating the counter of points the user can distribute during this phase
-        $(".counter_input").change(function () {
-            var current_phase = $(".phase-container").attr("data-phaseNumber");
-            var total_point_to_use = 10*current_phase;
-            var sum_points_given = 0;
-
-            $(".counter_input").each(function () {
-                sum_points_given += parseInt($(this).val());
-            })
-
-            var remaining_points = total_point_to_use - sum_points_given;
-            $("#counter_value").text(remaining_points);
-
-            if (remaining_points==0) {
-                $("#btn_valid").prop( "disabled", false );
-                $("#btn_valid").prop( "title", "Please distribute all points before validating.");
-            } else{
-                $("#btn_valid").prop( "disabled", true );
-                $("#btn_valid").prop( "title", "");
-            };
-        });
-
-        $(".counter_input").keypress(function () {
-            return false;
-        });
+        init_phase();
     });
 }

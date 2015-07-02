@@ -1,23 +1,24 @@
 <div class="p3exblock_block">
-	<div id="phase1" class="phase-container" data-phaseNumber=1>
-		<h2 class="phase-title">First step : Answer</h2>
-		% for q in data:
-			<div class="question_block">
-				<h4>Question #${loop.index + 1} </h4>
-				<p> ${q} </p>
-				<textarea id="r${loop.index + 1}" rows="6" cols="80"></textarea>
-				<p class="grade">Rate this question : 
-					<input id="note_saver${loop.index + 1}" class="form-control counter_input" size="2" min="0" max="5" type="number" value="0" />
-				</p>
-			</div>
-		% endfor
+	<div class="phase-container" data-phaseNumber=1>
+		<h1>First step : Answer</h1>
+
 		<p id="reverse_counter">
 			Remaining points : 
 			<var id="counter_value">10</var> 
 			/10
 		</p>
-		<br>
-		<br>
-		<input id="btn_valid" class="btn btn-default btn-lg" type="submit" value="Phase suivante" disabled="true"/>
+
+		% for q in data:
+		<div class="question_block">
+			<h3>Question #${loop.index + 1} </h3>
+			<p> ${q} </p>
+			<textarea id="r${loop.index + 1}" autocomplete="off" placeholder="Type your answer here..."></textarea>
+			<p class="grade">Rate this question : 
+				<input id="note_saver${loop.index + 1}" class="counter_input" size="2" min="0" max="5" type="number" value="0" autocomplete="off" />
+			</p>
+		</div>
+		% endfor
+		
+		<button id="btn_valid" disabled="true">Phase suivante</button> 
 	</div>
 </div>

@@ -44,7 +44,7 @@ class P3eXBlock(XBlock):
         help="The ids of the 3 questions this student answered in phase 1",
     )
     phase2_question_index = Integer(
-        default=[], scope=Scope.user_state,
+        default=0, scope=Scope.user_state,
         help="The id of the question this student asked in phase 2",
     )
     phase3_answer_indexes = List(
@@ -57,11 +57,14 @@ class P3eXBlock(XBlock):
 
     def student_view(self, context=None):
         if len(self.dict_questions)<5:
+            t_q = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed condimentum enim vitae tortor rhoncus ?"
+            t_r = "Phasellus suscipit dui at orci molestie pellentesque. Integer placerat convallis lacus. Integer eleifend, augue non consequat luctus, urna dui mollis."
+            t_s = "Nulla id auctor orci. Vivamus pharetra eu felis vitae iaculis. Sed ornare, velit vitae faucibus sollicitudin, orci nunc mollis ipsum."
             for i in range(5):
-                self.add_question("question bidon n"+str(i), "reponse bidon n"+str(i), p_is_prof=True)
-                self.add_question("question eleve bidon n"+str(i), "reponse bidon n"+str(i))
+                self.add_question(t_q, t_r, p_is_prof=True)
+                self.add_question(t_q, t_r)
             for i in range(20):
-                self.add_answer_to_evaluate(randint(1,10), "reponse caca n°"+str(i))
+                self.add_answer_to_evaluate(randint(1,10), t_s)
 
         data = []
         if (self.current_phase == 1):
