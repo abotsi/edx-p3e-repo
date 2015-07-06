@@ -25,22 +25,29 @@
     border-top-color: white;
 }
 
+h1 {
+    text-align: center;
+    margin-bottom: 0;
+}
 h3 {
     margin-left: 20px;
 }
 h4 {
     margin-bottom: 0;
 }
-h4.solution-title {
-    display: inline;
-}
 
 .question_block>p {
     margin-top: 5px;
 }
+.user-text {
+    font-family: serif;
+}
 
 .grade {
     margin-top: 10px;
+}
+.wrong-solution {
+    margin-left: 20px;
 }
 
 textarea {

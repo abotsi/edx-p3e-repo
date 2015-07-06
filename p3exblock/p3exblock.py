@@ -47,15 +47,20 @@ class P3eXBlock(XBlock):
         default=0, scope=Scope.user_state,
         help="The id of the question this student asked in phase 2",
     )
-    phase3_answer_indexes = List(
+    phase3_data = List(
         default=[], scope=Scope.user_state,
-        help="The ids of the 9 answers this student corrected in phase 3",
+        help="The 9 triplets (answer id, question id, clue id) referring to what this student corrected in phase 3",
     )
     
     def studio_view(self, context):
         pass
 
     def student_view(self, context=None):
+
+        # debug
+        self.current_phase = 3
+
+
         if len(self.dict_questions)<5:
             t_q = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed condimentum enim vitae tortor rhoncus ?"
             t_r = "Phasellus suscipit dui at orci molestie pellentesque. Integer placerat convallis lacus. Integer eleifend, augue non consequat luctus, urna dui mollis."
@@ -104,7 +109,7 @@ class P3eXBlock(XBlock):
         if not self.phase1_question_indexes:
             # on prend au hasard des indexes de questions profs
             self.phase1_question_indexes = sample(self.get_prof_questions(), 2)
-            # puis on ajoute une question étudiant
+            # puis on ajoute une question etudiant
             self.phase1_question_indexes.append(sample(self.get_student_questions(), 1)[0]) # [0] --> pour acceder a l'unique element du singleton
             #on melange les questions pour que celle de l'etudiant ne soit pas toujours a la fin
             shuffle(self.phase1_question_indexes)
@@ -127,31 +132,36 @@ class P3eXBlock(XBlock):
         """
         
         # Si on a pas encore tire les reponses
-        if not self.phase3_answer_indexes:
+        if not self.phase3_data:
             # On recupere toutes les reponses non evaluees
             dict_unevaluated_answers = self.get_unevaluated_answers()
+
             # ...on enleve les reponses de l'utilisateur courrant
-            dict_unevaluated_answers = [elt for elt in dict_unevaluated_answers if elt not in self.phase1_question_indexes]
-            # ...puis on en prend 3 parmi celles-ci
-            self.phase3_answer_indexes = sample(dict_unevaluated_answers, 9)
+            # wrong -> d...s = [elt for elt in d...s if elt not in self.phase1_question_indexes]
+            dict_unevaluated_answers = [elt for elt in dict_unevaluated_answers ]
+
+            # ...puis on en prend 9 parmi celles-ci
+            for answer_id in sample(dict_unevaluated_answers, 9):
+                # et on selectionne le meilleur corrige pour chacune
+                question_id = self.dict_answers_to_evaluate[answer_id]['n_question_id']
+                clue_id = self.get_best_clue_index(question_id)
+                self.phase3_data.append( {'answer_id':answer_id, 'question_id':question_id, 'clue_id':clue_id} )
+
 
             print
-            print "--> Phase 3, selected answers : ", self.phase3_answer_indexes
+            print "--> Phase 3, selected answers : ", self.phase3_data
             print
 
         data = []
-        for i in self.phase3_answer_indexes:
-            # On prend le texte de chaque reponses
-            answer_text = self.dict_answers_to_evaluate[i]['s_text']
+        for e in self.phase3_data:
+            # On prend le texte de chaque reponse,
+            answer_text = self.dict_answers_to_evaluate[e['answer_id']]['s_text']
+            # ...l'enonce de la question correspondante,
+            question_text = self.dict_questions[e['question_id']]['s_text']
+            # ...ainsi que le texte du meilleur corrige,
+            clue_text = self.dict_questions[e['question_id']]['lst_clue_answer'][e['clue_id']]['s_text']
 
-            # On cherche la question correspondante
-            associated_question_id = self.dict_answers_to_evaluate[i]['n_question_id']
-            # On prend l'enonce de celle-ci
-            question_text = self.dict_questions[associated_question_id]['s_text']
-            # ainsi que la reponse/solution
-            question_clue = self.dict_questions[associated_question_id]['lst_clue_answer'][0]['s_text'] # on prend le premier element parce qu'on ne peut pas encore en ajouter d'autres
-
-            data.append({'text':question_text, 'clue_answer':question_clue, 'answer_to_evaluate':answer_text})
+            data.append({'text':question_text, 'clue_answer':clue_text, 'answer_to_evaluate':answer_text})
 
         return data
 
@@ -188,6 +198,11 @@ class P3eXBlock(XBlock):
 
         print
         print " --> Appel au handler 2"
+        print
+        print "data['question'] : ", data['question']
+        print "data['answer'] : ", data['answer']
+        print
+
         self.add_question(data['question'], data['answer'])
         self.phase2_question_index = self.max_id_question
 
@@ -206,11 +221,28 @@ class P3eXBlock(XBlock):
         """
 
         print " --> Appel au handler 3"
+        print
+        print "data['answer_grades'] : ", data['answer_grades']
+        print "data['clue_grades'] : ", data['clue_grades']
+        print "data['new_solutions'] : ", data['new_solutions']
+        print
 
         for i in range(9):
-            answer_id = self.phase3_answer_indexes[i]
-            self.dict_answers_to_evaluate[answer_id]['n_grade'] += int(data[i])
+            answer_id = self.phase3_data[i]['answer_id']
+            question_id = self.phase3_data[i]['question_id']
+            clue_id = self.phase3_data[i]['clue_id']
+            
+            # on ajoute une note a la reponse
+            self.dict_answers_to_evaluate[answer_id]['n_grade'] += int(data['answer_grades'][i])
             self.dict_answers_to_evaluate[answer_id]['nb_of_grade'] += 1
+
+            # on ajoute une note au corrige
+            self.dict_questions[question_id]['lst_clue_answer'][clue_id]['n_grade'] += int(data['clue_grades'][i])
+            self.dict_questions[question_id]['lst_clue_answer'][clue_id]['nb_of_grade'] += 1
+
+            # le cas echeant, on enregistre la nouvelle solution proposee par le correcteur
+            if data['new_solutions'][i]:
+                self.add_solution(question_id, data['new_solutions'][i])
 
         self.current_phase = 4
         print " <-- Fin du handler"
@@ -226,8 +258,8 @@ class P3eXBlock(XBlock):
             'lst_clue_answer': [{
                 'n_writer_id': -1,
                 's_text': p_answer_txt,
-                'n_grade': 0,
-                'nb_of_grade': 0,
+                'n_grade': 5,
+                'nb_of_grade': 1,
             }],
             'n_grade': 0,
             'nb_of_grade': 0,
@@ -246,6 +278,15 @@ class P3eXBlock(XBlock):
         }
         self.dict_answers_to_evaluate[unicode(self.max_id_answer)] = res
 
+    def add_solution(self, id_question, p_s_text):
+        res = {
+            'n_writer_id': -1,
+            's_text': p_s_text,
+            'n_grade': 5,
+            'nb_of_grade': 1,
+        }
+        self.dict_questions[id_question]['lst_clue_answer'].append(res)
+
 
     def get_prof_questions(self):
         """Return a subset of all questions written by a professor"""
@@ -258,6 +299,17 @@ class P3eXBlock(XBlock):
     def get_unevaluated_answers(self):
         """Return the subset of questions written by students"""
         return dict(filter(lambda k: k[1]['nb_of_grade']<3, self.dict_answers_to_evaluate.items()))
+
+    def get_best_clue_index(self, question_id):
+        """Return the best clue answer for a question"""
+        max_i = max_v = 0
+        for i, v in enumerate(self.dict_questions[question_id]['lst_clue_answer']):
+            # calcule la note moyenne en gerant le cas 0
+            m = (v['n_grade']/v['nb_of_grade'])|0
+            if m > max_v:
+                max_i, max_v = i, m
+
+        return max_i
 
 
     @staticmethod

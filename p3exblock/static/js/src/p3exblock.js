@@ -50,6 +50,11 @@ function P3eXBlock(runtime, element) {
             return false;
         });
 
+        //Enable a textarea to submit a better solution
+        $(".wrong-solution").click(function () {
+            $(this).parent().siblings(".new-solution").slideToggle("slow");
+        });
+
         // About scrolling of reverse_counter
         // $(window).on("scroll", function() {
         //     var w = $(window);
@@ -93,15 +98,20 @@ function P3eXBlock(runtime, element) {
     }
 
     function validate_phase3(eventObject) {
-        lst_of_grade = []
-        $(".note_saver").each(function () {
-            lst_of_grade += $(this).val();
-        })
+        var answer_grades = [];
+        var clue_grades = [];
+        var new_solutions = [];
+
+        $(".question_block").each(function () {
+            answer_grades.push( $(this).find(".answer_grade").val() );
+            clue_grades.push( $(this).find(".clue_grade").val() );
+            new_solutions.push( $(this).find(".new-solution").val() );
+        });
 
         $.ajax({
             type: "POST",
             url: urlValid3,
-            data: JSON.stringify(lst_of_grade),
+            data: JSON.stringify({answer_grades, clue_grades, new_solutions}),
             success: change_phase
         });
     }
@@ -109,7 +119,7 @@ function P3eXBlock(runtime, element) {
     function change_phase(html_content) {
         // Replacing the html content by the html of the new phase
         $(".p3exblock_block").replaceWith(html_content);
-        init_phase()
+        init_phase();
     }
 
 

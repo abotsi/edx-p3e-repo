@@ -13,20 +13,24 @@
 			<h3>Evaluation #${loop.index + 1} </h3>
 
 			<h4>Question:</h4>
-			<p>${elt['text']}</p>
+			<p class="user-text">${elt['text']}</p>
 			
-			<h4 class="solution-title">Solution:</h4>
-			<button id="btn_valid3" class="btn btn-default btn-lg">Wrong solution ? Propose another one</button>
-			<p>${elt['clue_answer']}</p>
+			<h4>Proposed solution:</h4>
+			<textarea class="new-solution" style="display: none;" autocomplete="off"></textarea>
+			<p class="user-text">${elt['clue_answer']}</p>
+			<p class="grade">Pedagogical quality of the solution:
+				<input class="clue_grade" size="2" min="0" max="5" type="number" value="0" autocomplete="off" />
+				<button class="wrong-solution">Better solution? Propose an improved one</button>
+			</p>
 
 			<h4>Answer to evaluate :</h4>
-			<textarea id="r${loop.index + 1}" class="ans" readonly>${elt['answer_to_evaluate']}</textarea>
+			<textarea class="ans" readonly>${elt['answer_to_evaluate']}</textarea>
 			<p class="grade">Rate this answer :
-				<input class="note_saver counter_input" size="2" min="0" max="5" type="number" value="0" autocomplete="off" />
+				<input class="answer_grade counter_input" size="2" min="0" max="5" type="number" value="0" autocomplete="off" />
 			</p>
 		</div>
 		% endfor
 
-		<button id="btn_valid" disabled="true">Terminer</button> 
+		<button id="btn_valid" disabled="true" title="Please distribute all points before validating.">Terminer</button> 
 	</div>
 </div>
