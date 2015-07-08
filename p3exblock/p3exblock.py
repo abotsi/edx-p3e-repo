@@ -56,11 +56,6 @@ class P3eXBlock(XBlock):
         pass
 
     def student_view(self, context=None):
-
-        # debug
-        self.current_phase = 3
-
-
         if len(self.dict_questions)<5:
             t_q = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed condimentum enim vitae tortor rhoncus ?"
             t_r = "Phasellus suscipit dui at orci molestie pellentesque. Integer placerat convallis lacus. Integer eleifend, augue non consequat luctus, urna dui mollis."

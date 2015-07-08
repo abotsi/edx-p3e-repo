@@ -12,7 +12,8 @@
 		<div class="question_block">
 			<h3>Question #${loop.index + 1} </h3>
 			<p> ${q} </p>
-			<textarea id="r${loop.index + 1}" autocomplete="off" placeholder="Type your answer here..."></textarea>
+			<!-- <textarea id="r${loop.index + 1}" autocomplete="off" placeholder="Type your answer here..."></textarea> -->
+			<div  id="r${loop.index + 1}" class="textarea" contentEditable="true"></div>
 			<p class="grade">Rate this question : 
 				<input id="note_saver${loop.index + 1}" class="counter_input" size="2" min="0" max="5" type="number" value="0" autocomplete="off" />
 			</p>

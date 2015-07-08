@@ -77,9 +77,9 @@ function P3eXBlock(runtime, element) {
             data: JSON.stringify([
                 // Sending to server a list of JSON object, each contening the answer 
                 // gave by the student and grade related to a question
-                {'answer': $('#r1').val(), 'question_grade': $('#note_saver1').val()},
-                {'answer': $('#r2').val(), 'question_grade': $('#note_saver2').val()},
-                {'answer': $('#r3').val(), 'question_grade': $('#note_saver3').val()}
+                {'answer': $('#r1').html(), 'question_grade': $('#note_saver1').val()},
+                {'answer': $('#r2').html(), 'question_grade': $('#note_saver2').val()},
+                {'answer': $('#r3').html(), 'question_grade': $('#note_saver3').val()}
             ]),
             success: change_phase
         });
