@@ -52,8 +52,23 @@ class P3eXBlock(XBlock):
         help="The 9 triplets (answer id, question id, clue id) referring to what this student corrected in phase 3",
     )
     
-    def studio_view(self, context):
-        pass
+    def studio_view(self, context=None):
+        """This is the view displaying xblock form in studio."""
+        self.max_id_answer = 0
+        self.max_id_question = 0
+        self.dict_answers_to_evaluate = {}
+        self.dict_questions = {}
+
+        q = "Que permet de faire le théorème de Bayes ? Donner un exemple ?"
+        r = "Il permet d'inverser des probabilités pourvu qu'on ait des connaissances préalables."
+        r_etu = "Si l'on connait P(A), P(B) et P(A|B),le théorème de Bayes nous permet de calculer P(B|A)."
+        for i in range(5):
+            self.add_question(q, r, p_is_prof=True)
+            self.add_question(q, r)
+        for i in range(10):
+            self.add_answer_to_evaluate(randint(1,10), r_etu)
+
+        return Fragment(self.resource_string("templates/studio.html"))
 
     def student_view(self, context=None):
         if len(self.dict_questions)<5:
@@ -63,7 +78,7 @@ class P3eXBlock(XBlock):
             for i in range(5):
                 self.add_question(t_q, t_r, p_is_prof=True)
                 self.add_question(t_q, t_r)
-            for i in range(20):
+            for i in range(10):
                 self.add_answer_to_evaluate(randint(1,10), t_s)
 
         data = []
