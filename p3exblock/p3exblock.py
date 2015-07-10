@@ -23,19 +23,19 @@ class P3eXBlock(XBlock):
     )
 
     dict_questions = Dict(
-        default={}, scope=Scope.user_state_summary,
+        default={}, scope=Scope.settings,
         help="The list of all questions",
     )
     max_id_question = Integer(
-        default=0, scope=Scope.user_state_summary,
+        default=0, scope=Scope.settings,
         help="The biggest identifier given to a question",
     )
     dict_answers_to_evaluate = Dict(
-        default={}, scope=Scope.user_state_summary,
+        default={}, scope=Scope.settings,
         help="The list of answers submited at phase 1",
     )
     max_id_answer = Integer(
-        default=0, scope=Scope.user_state_summary,
+        default=0, scope=Scope.settings,
         help="The biggest identifier given to a answer",
     )
 
@@ -181,8 +181,8 @@ class P3eXBlock(XBlock):
         A handler to validate the phase 1
         """
         print 
-        print "Appel au  --> handler 1"
-        print "data : ", data
+        print " --> Appel au handler 1"
+        print "     data : ", data
 
         for i in range(3):
             question_index = self.phase1_question_indexes[i]
@@ -209,8 +209,8 @@ class P3eXBlock(XBlock):
         print
         print " --> Appel au handler 2"
         print
-        print "data['question'] : ", data['question']
-        print "data['answer'] : ", data['answer']
+        print "     data['question'] : ", data['question']
+        print "     data['answer'] : ", data['answer']
         print
 
         self.add_question(data['question'], data['answer'])
@@ -232,9 +232,9 @@ class P3eXBlock(XBlock):
 
         print " --> Appel au handler 3"
         print
-        print "data['answer_grades'] : ", data['answer_grades']
-        print "data['clue_grades'] : ", data['clue_grades']
-        print "data['new_solutions'] : ", data['new_solutions']
+        print "     data['answer_grades'] : ", data['answer_grades']
+        print "     data['clue_grades'] : ", data['clue_grades']
+        print "     data['new_solutions'] : ", data['new_solutions']
         print
 
         for i in range(9):
