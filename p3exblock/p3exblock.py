@@ -4,6 +4,7 @@
 import pkg_resources
 import os.path
 from random import sample, choice, shuffle, randint
+from time import time
 
 from xblock.core import XBlock
 from xblock.fields import Scope, Integer, String, List, Dict
@@ -22,20 +23,38 @@ class P3eXBlock(XBlock):
         help="The phase currently running",
     )
 
-    dict_questions = Dict(
+    t_stud_last_modif = Integer(
+        default=0, scope=Scope.user_state,
+        help="Date of the last modification made by a student",
+    )
+    t_prof_last_modif = Integer(
+        default=0, scope=Scope.settings,
+        help="Date of the last modification made by the professor",
+    )
+
+    dict_studio_questions = Dict(
         default={}, scope=Scope.settings,
+        help="The list of questions set up by the professor",
+    )
+    max_id_studio_question = Integer(
+        default=0, scope=Scope.user_state_summary,
+        help="The biggest identifier of a question submited by the professor",
+    )
+
+    dict_questions = Dict(
+        default={}, scope=Scope.user_state_summary,
         help="The list of all questions",
     )
     max_id_question = Integer(
-        default=0, scope=Scope.settings,
+        default=0, scope=Scope.user_state_summary,
         help="The biggest identifier given to a question",
     )
     dict_answers_to_evaluate = Dict(
-        default={}, scope=Scope.settings,
+        default={}, scope=Scope.user_state_summary,
         help="The list of answers submited at phase 1",
     )
     max_id_answer = Integer(
-        default=0, scope=Scope.settings,
+        default=0, scope=Scope.user_state_summary,
         help="The biggest identifier given to a answer",
     )
 
@@ -54,30 +73,36 @@ class P3eXBlock(XBlock):
     
     def studio_view(self, context=None):
         """This is the view displaying xblock form in studio."""
-        self.max_id_answer = 0
-        self.max_id_question = 0
-        self.dict_answers_to_evaluate = {}
-        self.dict_questions = {}
 
         q = "Que permet de faire le théorème de Bayes ? Donner un exemple ?"
         r = "Il permet d'inverser des probabilités pourvu qu'on ait des connaissances préalables."
-        r_etu = "Si l'on connait P(A), P(B) et P(A|B),le théorème de Bayes nous permet de calculer P(B|A)."
+        # r_etu = "Si l'on connait P(A), P(B) et P(A|B),le théorème de Bayes nous permet de calculer P(B|A)."
         for i in range(5):
-            self.add_question(q, r, p_is_prof=True)
-            self.add_question(q, r)
-        for i in range(10):
-            self.add_answer_to_evaluate(randint(1,10), r_etu)
+            self.add_studio_question(q, r)
 
+        self.t_prof_last_modif = time()
         return Fragment(self.resource_string("templates/studio.html"))
 
     def student_view(self, context=None):
+        # On copie les données entrees par prof
+        if self.t_prof_last_modif>self.t_stud_last_modif:
+            self.dict_questions = self.dict_studio_questions
+            self.max_id_question = self.max_id_studio_question
+            self.t_stud_last_modif = self.t_prof_last_modif
+
+        # On cree quelques fausses données si besoin
         if len(self.dict_questions)<5:
             t_q = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed condimentum enim vitae tortor rhoncus ?"
             t_r = "Phasellus suscipit dui at orci molestie pellentesque. Integer placerat convallis lacus. Integer eleifend, augue non consequat luctus, urna dui mollis."
-            t_s = "Nulla id auctor orci. Vivamus pharetra eu felis vitae iaculis. Sed ornare, velit vitae faucibus sollicitudin, orci nunc mollis ipsum."
             for i in range(5):
                 self.add_question(t_q, t_r, p_is_prof=True)
+        if len(self.dict_questions)<10:
+            t_q = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed condimentum enim vitae tortor rhoncus ?"
+            t_r = "Phasellus suscipit dui at orci molestie pellentesque. Integer placerat convallis lacus. Integer eleifend, augue non consequat luctus, urna dui mollis."
+            for i in range(5):
                 self.add_question(t_q, t_r)
+        if len(self.dict_answers_to_evaluate)<10:
+            t_s = "Nulla id auctor orci. Vivamus pharetra eu felis vitae iaculis. Sed ornare, velit vitae faucibus sollicitudin, orci nunc mollis ipsum."
             for i in range(10):
                 self.add_answer_to_evaluate(randint(1,10), t_s)
 
@@ -276,6 +301,24 @@ class P3eXBlock(XBlock):
         }
         # la cle d'un field.Dict passe au format unicode
         self.dict_questions[unicode(self.max_id_question)] = res
+
+    def add_studio_question(self, p_question_txt, p_answer_txt):
+        self.max_id_studio_question+=1
+        res = {
+            'n_writer_id': -1,
+            'is_prof': True,
+            's_text': p_question_txt,
+            'lst_clue_answer': [{
+                'n_writer_id': -1,
+                's_text': p_answer_txt,
+                'n_grade': 5,
+                'nb_of_grade': 1,
+            }],
+            'n_grade': 0,
+            'nb_of_grade': 0,
+        }
+        # la cle d'un field.Dict passe au format unicode
+        self.dict_studio_questions[unicode(self.max_id_studio_question)] = res
 
     def add_answer_to_evaluate(self, id_question, p_s_text):
         self.max_id_answer+=1
