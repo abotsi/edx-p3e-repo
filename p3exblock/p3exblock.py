@@ -37,7 +37,7 @@ class P3eXBlock(XBlock):
         help="The list of questions set up by the professor",
     )
     max_id_studio_question = Integer(
-        default=0, scope=Scope.user_state_summary,
+        default=0, scope=Scope.settings,
         help="The biggest identifier of a question submited by the professor",
     )
 
