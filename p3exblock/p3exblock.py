@@ -90,8 +90,8 @@ class P3eXBlock(XBlock):
         logger.debug("On entre dans la partie prof")
         logger.debug("self.max_id_question : %s", self.max_id_question)
         logger.debug("self.dict_questions : %s", self.dict_questions)
-        logger.debug("self.max_id_studio_question : %s", self.max_id_question)
-        logger.debug("self.dict_studio_questions : %s", self.dict_questions)
+        logger.debug("self.max_id_studio_question : %s", self.max_id_studio_question)
+        logger.debug("self.dict_studio_questions : %s", self.dict_studio_questions)
 
         q = "Que permet de faire le théorème de Bayes ? Donner un exemple ?"
         r = "Il permet d'inverser des probabilités pourvu qu'on ait des connaissances préalables."
@@ -107,8 +107,8 @@ class P3eXBlock(XBlock):
 
         logger.debug("self.max_id_question : %s", self.max_id_question)
         logger.debug("self.dict_questions : %s", self.dict_questions)
-        logger.debug("self.max_id_studio_question : %s", self.max_id_question)
-        logger.debug("self.dict_studio_questions : %s", self.dict_questions)
+        logger.debug("self.max_id_studio_question : %s", self.max_id_studio_question)
+        logger.debug("self.dict_studio_questions : %s", self.dict_studio_questions)
         logger.debug("On sort de la partie prof")
 
         self.t_prof_last_modif = time()
@@ -118,8 +118,8 @@ class P3eXBlock(XBlock):
         logger.debug("On entre dans la partie etudiant")
         logger.debug("self.max_id_question : %s", self.max_id_question)
         logger.debug("self.dict_questions : %s", self.dict_questions)
-        logger.debug("self.max_id_studio_question : %s", self.max_id_question)
-        logger.debug("self.dict_studio_questions : %s", self.dict_questions)
+        logger.debug("self.max_id_studio_question : %s", self.max_id_studio_question)
+        logger.debug("self.dict_studio_questions : %s", self.dict_studio_questions)
         # On copie les données entrees par prof
         if self.t_prof_last_modif>self.t_stud_last_modif:
             self.dict_questions = self.dict_studio_questions
@@ -152,8 +152,8 @@ class P3eXBlock(XBlock):
 
         logger.debug("self.max_id_question : %s", self.max_id_question)
         logger.debug("self.dict_questions : %s", self.dict_questions)
-        logger.debug("self.max_id_studio_question : %s", self.max_id_question)
-        logger.debug("self.dict_studio_questions : %s", self.dict_questions)
+        logger.debug("self.max_id_studio_question : %s", self.max_id_studio_question)
+        logger.debug("self.dict_studio_questions : %s", self.dict_studio_questions)
         logger.debug("On sort de la partie etudiant")
 
         return self.load_current_phase(data)
