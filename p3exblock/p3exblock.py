@@ -53,6 +53,9 @@ class P3eXBlock(XBlock):
         default=0, scope=Scope.settings,
         help="The biggest identifier of a question submited by the professor",
     )
+    var_test = Integer(
+        default=0, scope=Scope.content,
+    )
 
     dict_questions = Dict(
         default={}, scope=Scope.user_state_summary,
@@ -92,6 +95,7 @@ class P3eXBlock(XBlock):
         logger.debug("self.dict_questions : %s", self.dict_questions)
         logger.debug("self.max_id_studio_question : %s", self.max_id_studio_question)
         logger.debug("self.dict_studio_questions : %s", self.dict_studio_questions)
+        logger.debug("self.var_test : %s", self.var_test)
 
         q = "Que permet de faire le théorème de Bayes ? Donner un exemple ?"
         r = "Il permet d'inverser des probabilités pourvu qu'on ait des connaissances préalables."
@@ -100,10 +104,10 @@ class P3eXBlock(XBlock):
             self.add_studio_question(q, r)
 
         try:
-            self.max_id_studio_question = 4
+            self.var_test += 18
         except Exception, e:
             logger.error("Voici l'erreur : %s", e)
-        logger.debug("self.max_id_studio_question : %s", self.max_id_studio_question)
+        logger.debug("self.var_test : %s", self.var_test)
 
         logger.debug("self.max_id_question : %s", self.max_id_question)
         logger.debug("self.dict_questions : %s", self.dict_questions)
@@ -120,6 +124,7 @@ class P3eXBlock(XBlock):
         logger.debug("self.dict_questions : %s", self.dict_questions)
         logger.debug("self.max_id_studio_question : %s", self.max_id_studio_question)
         logger.debug("self.dict_studio_questions : %s", self.dict_studio_questions)
+        logger.debug("self.var_test : %s", self.var_test)
         # On copie les données entrees par prof
         if self.t_prof_last_modif>self.t_stud_last_modif:
             self.dict_questions = self.dict_studio_questions
@@ -150,6 +155,7 @@ class P3eXBlock(XBlock):
         elif (self.current_phase == 3):
             data = self.get_data_phase3()
 
+        logger.debug("self.var_test : %s", self.var_test)
         logger.debug("self.max_id_question : %s", self.max_id_question)
         logger.debug("self.dict_questions : %s", self.dict_questions)
         logger.debug("self.max_id_studio_question : %s", self.max_id_studio_question)
