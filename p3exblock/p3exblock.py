@@ -5,6 +5,19 @@ import pkg_resources
 import os.path
 from random import sample, choice, shuffle, randint
 from time import time
+import logging
+logger = logging.getLogger('p3exblock')
+logger.setLevel(logging.DEBUG)
+
+logging.getLogger('django').setLevel(logging.WARNING)
+
+formatter = logging.Formatter('\n[%(asctime)s] %(message)s')
+
+file_handler = logging.FileHandler("p3exblock.log")
+file_handler.setLevel(logging.DEBUG)
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
+
 
 from xblock.core import XBlock
 from xblock.fields import Scope, Integer, String, List, Dict
@@ -74,16 +87,33 @@ class P3eXBlock(XBlock):
     def studio_view(self, context=None):
         """This is the view displaying xblock form in studio."""
 
+        logger.debug("On entre dans la partie prof")
+        logger.debug("self.max_id_question : %s", self.max_id_question)
+        logger.debug("self.dict_questions : %s", self.dict_questions)
+        logger.debug("self.max_id_studio_question : %s", self.max_id_question)
+        logger.debug("self.dict_studio_questions : %s", self.dict_questions)
+
         q = "Que permet de faire le théorème de Bayes ? Donner un exemple ?"
         r = "Il permet d'inverser des probabilités pourvu qu'on ait des connaissances préalables."
         # r_etu = "Si l'on connait P(A), P(B) et P(A|B),le théorème de Bayes nous permet de calculer P(B|A)."
         for i in range(5):
             self.add_studio_question(q, r)
 
+        logger.debug("self.max_id_question : %s", self.max_id_question)
+        logger.debug("self.dict_questions : %s", self.dict_questions)
+        logger.debug("self.max_id_studio_question : %s", self.max_id_question)
+        logger.debug("self.dict_studio_questions : %s", self.dict_questions)
+        logger.debug("On sort de la partie prof")
+
         self.t_prof_last_modif = time()
         return Fragment(self.resource_string("templates/studio.html"))
 
     def student_view(self, context=None):
+        logger.debug("On entre dans la partie etudiant")
+        logger.debug("self.max_id_question : %s", self.max_id_question)
+        logger.debug("self.dict_questions : %s", self.dict_questions)
+        logger.debug("self.max_id_studio_question : %s", self.max_id_question)
+        logger.debug("self.dict_studio_questions : %s", self.dict_questions)
         # On copie les données entrees par prof
         if self.t_prof_last_modif>self.t_stud_last_modif:
             self.dict_questions = self.dict_studio_questions
@@ -92,11 +122,13 @@ class P3eXBlock(XBlock):
 
         # On cree quelques fausses données si besoin
         if len(self.dict_questions)<5:
+            logger.debug("Creation de fausses questions prof")
             t_q = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed condimentum enim vitae tortor rhoncus ?"
             t_r = "Phasellus suscipit dui at orci molestie pellentesque. Integer placerat convallis lacus. Integer eleifend, augue non consequat luctus, urna dui mollis."
             for i in range(5):
                 self.add_question(t_q, t_r, p_is_prof=True)
         if len(self.dict_questions)<10:
+            logger.debug("Creation de questions etudiant")
             t_q = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed condimentum enim vitae tortor rhoncus ?"
             t_r = "Phasellus suscipit dui at orci molestie pellentesque. Integer placerat convallis lacus. Integer eleifend, augue non consequat luctus, urna dui mollis."
             for i in range(5):
@@ -111,6 +143,12 @@ class P3eXBlock(XBlock):
             data = self.get_data_phase1()
         elif (self.current_phase == 3):
             data = self.get_data_phase3()
+
+        logger.debug("self.max_id_question : %s", self.max_id_question)
+        logger.debug("self.dict_questions : %s", self.dict_questions)
+        logger.debug("self.max_id_studio_question : %s", self.max_id_question)
+        logger.debug("self.dict_studio_questions : %s", self.dict_questions)
+        logger.debug("On sort de la partie etudiant")
 
         return self.load_current_phase(data)
 
