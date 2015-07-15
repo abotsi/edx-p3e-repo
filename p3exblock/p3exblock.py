@@ -99,6 +99,12 @@ class P3eXBlock(XBlock):
         for i in range(5):
             self.add_studio_question(q, r)
 
+        try:
+            self.max_id_studio_question = 4
+        except Exception, e:
+            logger.error("Voici l'erreur : %s", e)
+        logger.debug("self.max_id_studio_question : %s", self.max_id_studio_question)
+
         logger.debug("self.max_id_question : %s", self.max_id_question)
         logger.debug("self.dict_questions : %s", self.dict_questions)
         logger.debug("self.max_id_studio_question : %s", self.max_id_question)
