@@ -13,7 +13,7 @@ logging.getLogger('django').setLevel(logging.WARNING)
 
 formatter = logging.Formatter('\n[%(asctime)s] %(message)s')
 
-file_handler = logging.FileHandler("p3exblock.log")
+file_handler = logging.FileHandler("/var/log/p3exblock.log")
 file_handler.setLevel(logging.DEBUG)
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
