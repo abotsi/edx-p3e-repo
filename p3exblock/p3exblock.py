@@ -54,7 +54,7 @@ class P3eXBlock(XBlock):
         help="The biggest identifier of a question submited by the professor",
     )
     var_test = Integer(
-        default=0, scope=Scope.content,
+        default=0, scope=Scope.settings,
     )
 
     dict_questions = Dict(
@@ -91,40 +91,53 @@ class P3eXBlock(XBlock):
         """This is the view displaying xblock form in studio."""
 
         logger.debug("On entre dans la partie prof")
-        logger.debug("self.max_id_question : %s", self.max_id_question)
-        logger.debug("self.dict_questions : %s", self.dict_questions)
-        logger.debug("self.max_id_studio_question : %s", self.max_id_studio_question)
-        logger.debug("self.dict_studio_questions : %s", self.dict_studio_questions)
-        logger.debug("self.var_test : %s", self.var_test)
+        # logger.debug("self.max_id_question : %s", self.max_id_question)
+        # logger.debug("self.dict_questions : %s", self.dict_questions)
+        # logger.debug("self.max_id_studio_question : %s", self.max_id_studio_question)
+        # logger.debug("self.dict_studio_questions : %s", self.dict_studio_questions)
+        logger.debug("  self.var_test : %s", self.var_test)
 
-        q = "Que permet de faire le théorème de Bayes ? Donner un exemple ?"
-        r = "Il permet d'inverser des probabilités pourvu qu'on ait des connaissances préalables."
+        # q = "Que permet de faire le théorème de Bayes ? Donner un exemple ?"
+        # r = "Il permet d'inverser des probabilités pourvu qu'on ait des connaissances préalables."
         # r_etu = "Si l'on connait P(A), P(B) et P(A|B),le théorème de Bayes nous permet de calculer P(B|A)."
-        for i in range(5):
-            self.add_studio_question(q, r)
+        # for i in range(5):
+        #     self.add_studio_question(q, r)
 
-        try:
-            self.var_test += 18
-        except Exception, e:
-            logger.error("Voici l'erreur : %s", e)
-        logger.debug("self.var_test : %s", self.var_test)
 
-        logger.debug("self.max_id_question : %s", self.max_id_question)
-        logger.debug("self.dict_questions : %s", self.dict_questions)
-        logger.debug("self.max_id_studio_question : %s", self.max_id_studio_question)
-        logger.debug("self.dict_studio_questions : %s", self.dict_studio_questions)
+        # logger.debug("self.max_id_question : %s", self.max_id_question)
+        # logger.debug("self.dict_questions : %s", self.dict_questions)
+        # logger.debug("self.max_id_studio_question : %s", self.max_id_studio_question)
+        # logger.debug("self.dict_studio_questions : %s", self.dict_studio_questions)
+        # logger.debug("self.var_test : %s", self.var_test)
         logger.debug("On sort de la partie prof")
 
-        self.t_prof_last_modif = time()
-        return Fragment(self.resource_string("templates/studio.html"))
+        # self.t_prof_last_modif = time()
+        frag = Fragment(self.resource_string("templates/studio.html"))
+        frag.add_javascript(self.resource_string("static/js/src/p3exblock_studio.js"))
+        frag.initialize_js('P3eXBlock')
+        return frag
+
+    @XBlock.json_handler
+    def validate_studio(self, data, suffix=''):
+        logger.debug("  On entre dans le handler")
+        logger.debug("    self.var_test : %s", self.var_test)
+
+        try:
+            self.var_test += data
+        except Exception, e:
+            logger.error("Voici l'erreur : %s", e)
+
+        logger.debug("    self.var_test : %s", self.var_test)
+        logger.debug("  On sort du handler")
+        return
 
     def student_view(self, context=None):
         logger.debug("On entre dans la partie etudiant")
-        logger.debug("self.max_id_question : %s", self.max_id_question)
-        logger.debug("self.dict_questions : %s", self.dict_questions)
-        logger.debug("self.max_id_studio_question : %s", self.max_id_studio_question)
-        logger.debug("self.dict_studio_questions : %s", self.dict_studio_questions)
-        logger.debug("self.var_test : %s", self.var_test)
+        # logger.debug("self.max_id_question : %s", self.max_id_question)
+        # logger.debug("self.dict_questions : %s", self.dict_questions)
+        # logger.debug("self.max_id_studio_question : %s", self.max_id_studio_question)
+        # logger.debug("self.dict_studio_questions : %s", self.dict_studio_questions)
+        logger.debug("  self.var_test : %s", self.var_test)
         # On copie les données entrees par prof
         if self.t_prof_last_modif>self.t_stud_last_modif:
             self.dict_questions = self.dict_studio_questions
@@ -133,13 +146,13 @@ class P3eXBlock(XBlock):
 
         # On cree quelques fausses données si besoin
         if len(self.dict_questions)<5:
-            logger.debug("Creation de fausses questions prof")
+            # logger.debug("Creation de fausses questions prof")
             t_q = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed condimentum enim vitae tortor rhoncus ?"
             t_r = "Phasellus suscipit dui at orci molestie pellentesque. Integer placerat convallis lacus. Integer eleifend, augue non consequat luctus, urna dui mollis."
             for i in range(5):
                 self.add_question(t_q, t_r, p_is_prof=True)
         if len(self.dict_questions)<10:
-            logger.debug("Creation de questions etudiant")
+            # logger.debug("Creation de questions etudiant")
             t_q = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed condimentum enim vitae tortor rhoncus ?"
             t_r = "Phasellus suscipit dui at orci molestie pellentesque. Integer placerat convallis lacus. Integer eleifend, augue non consequat luctus, urna dui mollis."
             for i in range(5):
@@ -155,11 +168,11 @@ class P3eXBlock(XBlock):
         elif (self.current_phase == 3):
             data = self.get_data_phase3()
 
-        logger.debug("self.var_test : %s", self.var_test)
-        logger.debug("self.max_id_question : %s", self.max_id_question)
-        logger.debug("self.dict_questions : %s", self.dict_questions)
-        logger.debug("self.max_id_studio_question : %s", self.max_id_studio_question)
-        logger.debug("self.dict_studio_questions : %s", self.dict_studio_questions)
+        # logger.debug("self.var_test : %s", self.var_test)
+        # logger.debug("self.max_id_question : %s", self.max_id_question)
+        # logger.debug("self.dict_questions : %s", self.dict_questions)
+        # logger.debug("self.max_id_studio_question : %s", self.max_id_studio_question)
+        # logger.debug("self.dict_studio_questions : %s", self.dict_studio_questions)
         logger.debug("On sort de la partie etudiant")
 
         return self.load_current_phase(data)
