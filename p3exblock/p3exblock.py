@@ -103,7 +103,7 @@ class P3eXBlock(XBlock):
             # On prend le plus grand id et on l'incremente
             data['id'] = 1
             if self.studio_data:
-                data['id'] += self.studio_data[-1]['id']
+                data['id'] += int(self.studio_data[-1]['id'])
 
             # On ajoute les donnees
             self.studio_data.append(data)
