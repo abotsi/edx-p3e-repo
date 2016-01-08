@@ -2,6 +2,7 @@
 function P3eXBlock(runtime, element) {
 
     // Saving the URL of the handler
+    var urlValidStudio = runtime.handlerUrl(element, 'validate_studio');
     var urlValid1 = runtime.handlerUrl(element, 'validate_phase1');
     var urlValid2 = runtime.handlerUrl(element, 'validate_phase2');
     var urlValid3 = runtime.handlerUrl(element, 'validate_phase3');
@@ -90,8 +91,8 @@ function P3eXBlock(runtime, element) {
             type: "POST",
             url: urlValid2,
             data: JSON.stringify({
-                "question": $('#q').val(), 
-                "answer": $('#r').val()
+                "question": $('#q').text(), 
+                "answer": $('#r').text()
             }),
             success: change_phase
         });

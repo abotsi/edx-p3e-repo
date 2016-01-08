@@ -4,23 +4,9 @@
 import pkg_resources
 import os.path
 from random import sample, choice, shuffle, randint
-from time import time
-import logging
-logger = logging.getLogger('p3exblock')
-logger.setLevel(logging.DEBUG)
-
-logging.getLogger('django').setLevel(logging.WARNING)
-
-formatter = logging.Formatter('\n[%(asctime)s] %(message)s')
-
-file_handler = logging.FileHandler("/var/log/p3exblock.log")
-file_handler.setLevel(logging.DEBUG)
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
-
 
 from xblock.core import XBlock
-from xblock.fields import Scope, Integer, String, List, Dict
+from xblock.fields import Scope, Integer, List, Dict
 from xblock.fragment import Fragment
 
 from mako.template import Template
@@ -31,39 +17,15 @@ class P3eXBlock(XBlock):
     TO-DO: document what your XBlock does.
     """
 
-    current_phase = Integer(
-        default=1, scope=Scope.user_state,
-        help="The phase currently running",
-    )
-
-    t_stud_last_modif = Integer(
-        default=0, scope=Scope.user_state,
-        help="Date of the last modification made by a student",
-    )
-    t_prof_last_modif = Integer(
-        default=0, scope=Scope.settings,
-        help="Date of the last modification made by the professor",
-    )
-
-    dict_studio_questions = Dict(
-        default={}, scope=Scope.settings,
-        help="The list of questions set up by the professor",
-    )
-    max_id_studio_question = Integer(
-        default=0, scope=Scope.settings,
-        help="The biggest identifier of a question submited by the professor",
-    )
-    var_test = Integer(
-        default=0, scope=Scope.settings,
-    )
-
+# Fields global to all students
     dict_questions = Dict(
         default={}, scope=Scope.user_state_summary,
         help="The list of all questions",
     )
     max_id_question = Integer(
-        default=0, scope=Scope.user_state_summary,
-        help="The biggest identifier given to a question",
+        default=-0, scope=Scope.user_state_summary,
+        help="The biggest identifier given to a question"
+            +"Student question ids are positives.",
     )
     dict_answers_to_evaluate = Dict(
         default={}, scope=Scope.user_state_summary,
@@ -72,6 +34,26 @@ class P3eXBlock(XBlock):
     max_id_answer = Integer(
         default=0, scope=Scope.user_state_summary,
         help="The biggest identifier given to a answer",
+    )
+    last_id_saved = Integer(
+        default=-0, scope=Scope.user_state_summary,
+        help="The biggest identifier of a question submited by the professor"
+            +"and saved in the student list."
+            +"Professor question ids are negatives.",
+    )
+
+# Fields specific to the professor
+    studio_data = List(
+        default=[], scope=Scope.settings,
+        help="The list of (question - answer) submitted by the professor"
+            +"that will be copied to dict_questions ASAP."
+            +"Not erasable or rewritable, only adding is allowed.",
+    )
+
+# Fields specific to one student
+    current_phase = Integer(
+        default=1, scope=Scope.user_state,
+        help="The phase currently running",
     )
 
     phase1_question_indexes = List(
@@ -86,111 +68,143 @@ class P3eXBlock(XBlock):
         default=[], scope=Scope.user_state,
         help="The 9 triplets (answer id, question id, clue id) referring to what this student corrected in phase 3",
     )
-    
+
+
     def studio_view(self, context=None):
         """This is the view displaying xblock form in studio."""
 
-        logger.debug("On entre dans la partie prof")
-        # logger.debug("self.max_id_question : %s", self.max_id_question)
-        # logger.debug("self.dict_questions : %s", self.dict_questions)
-        # logger.debug("self.max_id_studio_question : %s", self.max_id_studio_question)
-        # logger.debug("self.dict_studio_questions : %s", self.dict_studio_questions)
-        logger.debug("  self.var_test : %s", self.var_test)
+        print
+        print " --> Appel a la studio_view"
+        print "     self.studio_data : ", self.studio_data
+        print
 
-        # q = "Que permet de faire le théorème de Bayes ? Donner un exemple ?"
-        # r = "Il permet d'inverser des probabilités pourvu qu'on ait des connaissances préalables."
-        # r_etu = "Si l'on connait P(A), P(B) et P(A|B),le théorème de Bayes nous permet de calculer P(B|A)."
-        # for i in range(5):
-        #     self.add_studio_question(q, r)
+        if not self.studio_data:
+            print "     there are no studio_data"
+            print " <-- Fin"
+            return self.load_view_studio()
 
 
-        # logger.debug("self.max_id_question : %s", self.max_id_question)
-        # logger.debug("self.dict_questions : %s", self.dict_questions)
-        # logger.debug("self.max_id_studio_question : %s", self.max_id_studio_question)
-        # logger.debug("self.dict_studio_questions : %s", self.dict_studio_questions)
-        # logger.debug("self.var_test : %s", self.var_test)
-        logger.debug("On sort de la partie prof")
-
-        # self.t_prof_last_modif = time()
-        frag = Fragment(self.resource_string("templates/studio.html"))
-        frag.add_javascript(self.resource_string("static/js/src/p3exblock_studio.js"))
-        frag.initialize_js('P3eXBlock')
-        return frag
+        print "     there are studio_data"
+        print " <-- Fin"
+        return self.load_view_studio(self.studio_data)
 
     @XBlock.json_handler
     def validate_studio(self, data, suffix=''):
-        logger.debug("  On entre dans le handler")
-        logger.debug("    self.var_test : %s", self.var_test)
+        """
+        A handler to receive a question from the studio
+        """
+        print
+        print " --> Appel au handler studio"
+        print "     data : ", data
 
-        try:
-            self.var_test += data
-        except Exception, e:
-            logger.error("Voici l'erreur : %s", e)
+        # Si les donnees envoyees par le client sont non vides
+        if data['q'] and data['r']:
 
-        logger.debug("    self.var_test : %s", self.var_test)
-        logger.debug("  On sort du handler")
-        return
+            # On prend le plus grand id et on l'incremente
+            data['id'] = 1
+            if self.studio_data:
+                data['id'] += self.studio_data[-1]['id']
+
+            # On ajoute les donnees
+            self.studio_data.append(data)
+            print "     self.studio_data : ", self.studio_data
+            print " <-- Fin du handler"
+            print
+
+            # On renvoie l'id pour mettre a jour l'interface client
+            return data['id']
+
 
     def student_view(self, context=None):
-        logger.debug("On entre dans la partie etudiant")
-        # logger.debug("self.max_id_question : %s", self.max_id_question)
-        # logger.debug("self.dict_questions : %s", self.dict_questions)
-        # logger.debug("self.max_id_studio_question : %s", self.max_id_studio_question)
-        # logger.debug("self.dict_studio_questions : %s", self.dict_studio_questions)
-        logger.debug("  self.var_test : %s", self.var_test)
-        # On copie les données entrees par prof
-        if self.t_prof_last_modif>self.t_stud_last_modif:
-            self.dict_questions = self.dict_studio_questions
-            self.max_id_question = self.max_id_studio_question
-            self.t_stud_last_modif = self.t_prof_last_modif
+            # On cree quelques fausses données si besoin
+        # if len(self.dict_questions)<5:
+        #     t_q = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed condimentum enim vitae tortor rhoncus ?"
+        #     t_r = "Phasellus suscipit dui at orci molestie pellentesque. Integer placerat convallis lacus. Integer eleifend, augue non consequat luctus, urna dui mollis."
+        #     for i in range(5):
+        #         self.add_question(t_q, t_r, p_is_prof=True)
+        # if len(self.dict_questions)<10:
+        #     t_q = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed condimentum enim vitae tortor rhoncus ?"
+        #     t_r = "Phasellus suscipit dui at orci molestie pellentesque. Integer placerat convallis lacus. Integer eleifend, augue non consequat luctus, urna dui mollis."
+        #     for i in range(5):
+        #         self.add_question(t_q, t_r)
+        # if len(self.dict_answers_to_evaluate)<10:
+        #     t_s = "Nulla id auctor orci. Vivamus pharetra eu felis vitae iaculis. Sed ornare, velit vitae faucibus sollicitudin, orci nunc mollis ipsum."
+        #     for i in range(10):
+        #         self.add_answer_to_evaluate(randint(1,10), t_s)
 
-        # On cree quelques fausses données si besoin
-        if len(self.dict_questions)<5:
-            # logger.debug("Creation de fausses questions prof")
-            t_q = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed condimentum enim vitae tortor rhoncus ?"
-            t_r = "Phasellus suscipit dui at orci molestie pellentesque. Integer placerat convallis lacus. Integer eleifend, augue non consequat luctus, urna dui mollis."
-            for i in range(5):
-                self.add_question(t_q, t_r, p_is_prof=True)
-        if len(self.dict_questions)<10:
-            # logger.debug("Creation de questions etudiant")
-            t_q = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed condimentum enim vitae tortor rhoncus ?"
-            t_r = "Phasellus suscipit dui at orci molestie pellentesque. Integer placerat convallis lacus. Integer eleifend, augue non consequat luctus, urna dui mollis."
-            for i in range(5):
-                self.add_question(t_q, t_r)
-        if len(self.dict_answers_to_evaluate)<10:
-            t_s = "Nulla id auctor orci. Vivamus pharetra eu felis vitae iaculis. Sed ornare, velit vitae faucibus sollicitudin, orci nunc mollis ipsum."
-            for i in range(10):
-                self.add_answer_to_evaluate(randint(1,10), t_s)
+        print
+        print " --> Appel a la student_view"
+        print "     n° de phase :", self.current_phase
 
+
+            # On copie les questions profs vers la liste accessible par les etudiants
+        # On recupere le plus grand id de la list des questions prof (le dernier ajoute)
+        last_id_created = 0
+        if self.studio_data:
+            last_id_created = self.studio_data[-1]['id']
+
+        print "     last_id_created : ", last_id_created
+        print "     self.last_id_saved : ", self.last_id_saved
+
+        if last_id_created > self.last_id_saved:
+            # on ajoute dans dict_q les question de l_prof qui on un id plus grand que last_id_dict
+            # c a d : en partant de la fin de la liste, on ajoute tout les elem jusqu a last_id_dict
+            print "     Le prof a ajoute de nouvelles questions ! "
+
+            # On parcourt la list prof depuis la fin
+            for new_q_p in reversed(self.studio_data):
+                # et on s'arrete quand on trouve un indice qu'on avait deja enregistre
+                if new_q_p['id'] <= self.last_id_saved:
+                    break
+
+                # On ajoute la nouvelle question dans le dict
+                self.add_studio_question(new_q_p['q'], new_q_p['r'], new_q_p['id'])
+                print "     question ajoutee : ", new_q_p['id']
+
+            # Puis on met a jour le dernier id qu'on a enregistre
+            self.last_id_saved = last_id_created
+
+
+        # On charge les donnees necessaires a la phase actuelle
         data = []
         if (self.current_phase == 1):
             data = self.get_data_phase1()
         elif (self.current_phase == 3):
             data = self.get_data_phase3()
 
-        # logger.debug("self.var_test : %s", self.var_test)
-        # logger.debug("self.max_id_question : %s", self.max_id_question)
-        # logger.debug("self.dict_questions : %s", self.dict_questions)
-        # logger.debug("self.max_id_studio_question : %s", self.max_id_studio_question)
-        # logger.debug("self.dict_studio_questions : %s", self.dict_studio_questions)
-        logger.debug("On sort de la partie etudiant")
+        print "     data : ", data
+        print " <-- Fin"
+        print
 
-        return self.load_current_phase(data)
+        # On affiche une page d'erreur si il n'y a pas suffisament de donnees pour cette phase
+        if not data :
+            print "     warning : there is not enough data for this phase"
+            return self.load_view("error.html")
+
+        return self.load_view("phase"+str(self.current_phase)+".html", data)
 
 
-    def load_current_phase(self, p_data):
+    def load_view_studio(self, data=[]):
         """Loading the whole XBlock fragment"""
+        frag = Fragment(self.render_template("studio.html", data))
+        frag.add_css(self.resource_string("static/css/p3exblock.css"))
+        frag.add_css(self.resource_string("static/css/p3exblock_studio.css"))
+        frag.add_javascript(self.resource_string("static/js/src/p3exblock_studio.js"))
+        frag.initialize_js('P3eXBlock')
+        return frag
 
-        frag = Fragment(self.get_current_html(p_data))
+    def load_view(self, filename, data=[]):
+        """Loading the whole XBlock fragment"""
+        frag = Fragment(self.render_template(filename, data))
         frag.add_css(self.resource_string("static/css/p3exblock.css"))
         frag.add_javascript(self.resource_string("static/js/src/p3exblock.js"))
         frag.initialize_js('P3eXBlock')
         return frag
 
-    def get_current_html(self, p_data=[]):
+    def render_template(self, filename, data=[]):
         """Handy helper for loading mako template."""
-        f = os.path.dirname(__file__) +"/templates/phase"+ str(self.current_phase) +".html"
-        html = Template(filename=f, input_encoding='utf-8').render(data=p_data)
+        f = os.path.dirname(__file__) +"/templates/"+ filename
+        html = Template(filename=f, input_encoding='utf-8').render(data=data)
         return html
 
     def resource_string(self, path):
@@ -203,20 +217,34 @@ class P3eXBlock(XBlock):
         """
         Selecting 3 random questions for the first phase
         """
-        
+
+        # S'il n'en a pas encore, on selectionne des questions pour l'etudiant
         if not self.phase1_question_indexes:
-            # on prend au hasard des indexes de questions profs
-            self.phase1_question_indexes = sample(self.get_prof_questions(), 2)
-            # puis on ajoute une question etudiant
-            self.phase1_question_indexes.append(sample(self.get_student_questions(), 1)[0]) # [0] --> pour acceder a l'unique element du singleton
+            print "     start picking questions for phase 1"
+
+            # On verifie s'il y a assez de question a poser
+            if len(self.dict_questions)<3:
+                print "     there is less than 3 questions"
+                return None
+
+            # si il n'y a pas encore de questions type `etudiant`
+            if len(self.get_student_questions() ) == 0:
+                # on prend 3 questions profs
+                self.phase1_question_indexes = sample(self.get_prof_questions(), 3)
+            else:
+                # on prend au hasard des indexes de questions profs
+                self.phase1_question_indexes = sample(self.get_prof_questions(), 2)
+                # puis on ajoute une question etudiant
+                self.phase1_question_indexes.append(sample(self.get_student_questions(), 1)[0]) # [0] --> pour acceder a l'unique element du singleton
+
             #on melange les questions pour que celle de l'etudiant ne soit pas toujours a la fin
             shuffle(self.phase1_question_indexes)
 
             print
-            print "--> Phase 1, selected questions : ", self.phase1_question_indexes
+            print "     Phase 1, selected questions : ", self.phase1_question_indexes
             print
 
-        lst_txt = []        
+        lst_txt = []
         for i in self.phase1_question_indexes:
             # on prend le texte des questions
             lst_txt.append(self.dict_questions[i]['s_text'])
@@ -226,17 +254,24 @@ class P3eXBlock(XBlock):
 
     def get_data_phase3(self, context=None):
         """
-        The third phase of the P3E, extracting 9 questions and answers 
+        The third phase of the P3E, extracting 9 questions and answers
         """
-        
+
         # Si on a pas encore tire les reponses
         if not self.phase3_data:
+            print "     start picking answers to evaluate for phase 3"
+
             # On recupere toutes les reponses non evaluees
             dict_unevaluated_answers = self.get_unevaluated_answers()
 
             # ...on enleve les reponses de l'utilisateur courrant
-            # wrong -> d...s = [elt for elt in d...s if elt not in self.phase1_question_indexes]
+            # /!\wrong/!\ -> d...s = [elt for elt in d...s if elt not in self.phase1_question_indexes]
             dict_unevaluated_answers = [elt for elt in dict_unevaluated_answers ]
+
+            # On verifie s'il y a assez de reponse a evaluer
+            if len(dict_unevaluated_answers) < 9:
+                print "     there is less than 9 answers to evaluate"
+                return None
 
             # ...puis on en prend 9 parmi celles-ci
             for answer_id in sample(dict_unevaluated_answers, 9):
@@ -247,7 +282,7 @@ class P3eXBlock(XBlock):
 
 
             print
-            print "--> Phase 3, selected answers : ", self.phase3_data
+            print "     Phase 3, selected answers : ", self.phase3_data
             print
 
         data = []
@@ -268,7 +303,7 @@ class P3eXBlock(XBlock):
         """
         A handler to validate the phase 1
         """
-        print 
+        print
         print " --> Appel au handler 1"
         print "     data : ", data
 
@@ -278,7 +313,7 @@ class P3eXBlock(XBlock):
             grade = int(data[i]['question_grade'])
 
             # Pour ne pas perdre de precision a cause de la moyenne,
-            # on sauvegarde separement le total de evaluations et le nombre d'evaluation 
+            # on sauvegarde separement le total de evaluations et le nombre d'evaluation
             self.dict_questions[question_index]['nb_of_grade']+=1
             self.dict_questions[question_index]['n_grade'] += grade
             self.add_answer_to_evaluate(question_index, answer)
@@ -286,7 +321,7 @@ class P3eXBlock(XBlock):
         self.current_phase = 2
         print " <-- Fin du handler"
 
-        return self.get_current_html()
+        return self.render_template("phase2.html")
 
     @XBlock.json_handler
     def validate_phase2(self, data, suffix=''):
@@ -296,21 +331,26 @@ class P3eXBlock(XBlock):
 
         print
         print " --> Appel au handler 2"
-        print
         print "     data['question'] : ", data['question']
         print "     data['answer'] : ", data['answer']
-        print
 
         self.add_question(data['question'], data['answer'])
         self.phase2_question_index = self.max_id_question
+        print "     self.phase2_question_index : ", self.phase2_question_index
+        print
 
-        data_for_phase3 = self.get_data_phase3()
-
+        data = self.get_data_phase3()
+        # data_for_phase3 = []
         self.current_phase = 3
+
+        # On affiche une page d'erreur si il n'y a pas suffisament de donnees pour cette phase
+        if not data :
+            print "     warning : there is not enough data for this phase"
+            return self.render_template("error.html")
 
         print " <-- Fin du handler"
 
-        return self.get_current_html(data_for_phase3)
+        return self.render_template("phase3.html", data)
 
     @XBlock.json_handler
     def validate_phase3(self, data, suffix=''):
@@ -319,7 +359,6 @@ class P3eXBlock(XBlock):
         """
 
         print " --> Appel au handler 3"
-        print
         print "     data['answer_grades'] : ", data['answer_grades']
         print "     data['clue_grades'] : ", data['clue_grades']
         print "     data['new_solutions'] : ", data['new_solutions']
@@ -329,7 +368,7 @@ class P3eXBlock(XBlock):
             answer_id = self.phase3_data[i]['answer_id']
             question_id = self.phase3_data[i]['question_id']
             clue_id = self.phase3_data[i]['clue_id']
-            
+
             # on ajoute une note a la reponse
             self.dict_answers_to_evaluate[answer_id]['n_grade'] += int(data['answer_grades'][i])
             self.dict_answers_to_evaluate[answer_id]['nb_of_grade'] += 1
@@ -345,7 +384,8 @@ class P3eXBlock(XBlock):
         self.current_phase = 4
         print " <-- Fin du handler"
 
-        return self.get_current_html()
+        return self.render_template("phase4.html")
+
 
     def add_question(self, p_question_txt, p_answer_txt, p_is_prof=False):
         self.max_id_question+=1
@@ -362,11 +402,10 @@ class P3eXBlock(XBlock):
             'n_grade': 0,
             'nb_of_grade': 0,
         }
-        # la cle d'un field.Dict passe au format unicode
+        # la cle d'un field.Dict passe au format unicode lorsque edX l'enregistre
         self.dict_questions[unicode(self.max_id_question)] = res
 
-    def add_studio_question(self, p_question_txt, p_answer_txt):
-        self.max_id_studio_question+=1
+    def add_studio_question(self, p_question_txt, p_answer_txt, p_id):
         res = {
             'n_writer_id': -1,
             'is_prof': True,
@@ -380,8 +419,9 @@ class P3eXBlock(XBlock):
             'n_grade': 0,
             'nb_of_grade': 0,
         }
-        # la cle d'un field.Dict passe au format unicode
-        self.dict_studio_questions[unicode(self.max_id_studio_question)] = res
+        # la cle d'un field.Dict passe au format unicode lorsque edX l'enregistre
+        # on enregistre l'id des questions profs en negatif
+        self.dict_questions[unicode(0 - p_id)] = res
 
     def add_answer_to_evaluate(self, id_question, p_s_text):
         self.max_id_answer+=1
@@ -436,3 +476,11 @@ class P3eXBlock(XBlock):
              """<p3exblock/>
              """),
         ]
+
+
+
+        # q = "Que permet de faire le théorème de Bayes ? Donner un exemple ?"
+        # r = "Il permet d'inverser des probabilités pourvu qu'on ait des connaissances préalables."
+        # r_etu = "Si l'on connait P(A), P(B) et P(A|B),le théorème de Bayes nous permet de calculer P(B|A)."
+        # for i in range(5):
+        #     self.add_studio_question(q, r)

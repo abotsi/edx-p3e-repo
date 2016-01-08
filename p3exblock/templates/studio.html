@@ -1,19 +1,41 @@
-<!-- <div class="p3exblock_block">
-	<div class="phase-container" data-phaseNumber=2>
-		<h1>Second step : Ask</h1>
+<div class="p3exblock_block">
+	<div class="phase-container">
+		<h1>Enter 3 questions and answers</h1>
 
+		% for elt in data:
 		<div class="question_block">
-			<h3>Your question :</h3>
-			<div id="q" class="textarea" contentEditable="true"></div>
-		</div>
-		<div class="question_block">
-			<h3>Its answer :</h3>
-			<div id="r" class="textarea" contentEditable="true"></div>
-		</div>
+			<h3 class="num">#${elt['id']} :</h3>
 
-		<button id="btn_valid">Phase suivante</button> 
+			<h4>Question : </h4>
+			<div class="textarea question" contentEditable="false">${elt['q']}</div>
+
+			<h4>Answer :</h4>
+			<div class="textarea answer" contentEditable="false">${elt['r']}</div>
+		</div>
+		% endfor
+
+<!-- 		<%
+			if len(data) == 0:
+				nb_new = 3
+			elif len(data) == 1:
+				nb_new = 2
+			else:
+				nb_new = 1
+				
+		%> -->
+		<!-- % for i in range(nb_new): -->
+		<div id="new_qb" class="question_block">
+			<h3 class="num">New :</h3>
+
+			<h4>Question :</h4>
+			<div class="textarea question" contentEditable="true"></div>
+			<h4>Answer :</h4>
+			<div class="textarea answer" contentEditable="true"></div>
+
+			<button class="btn_submit_question">Send my question</button> 
+		</div>
+		<!-- % endfor -->
+
 	</div>
-</div> -->
+</div>
 
-<!-- <p>Question list edited !</p> -->
-		<button id="btn_valid_studio">Edit question list</button> 
