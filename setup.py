@@ -22,7 +22,7 @@ def package_data(pkg, roots):
 
 setup(
     name='p3exblock-xblock',
-    version='0.1',
+    version='0.2',
     description='p3exblock XBlock',   # TODO: write a better description.
     packages=[
         'p3exblock',
