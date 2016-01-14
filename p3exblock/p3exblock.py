@@ -58,15 +58,19 @@ class P3eXBlock(XBlock):
 
     phase1_question_indexes = List(
         default=[], scope=Scope.user_state,
-        help="The ids of the 3 questions this student answered in phase 1",
+        help="The ids of the 3 questions this student answer in phase 1",
+    )
+    phase1_answer_indexes = List(
+        default=[], scope=Scope.user_state,
+        help="The ids of the 3 answers this student submit in phase 1",
     )
     phase2_question_index = Integer(
         default=0, scope=Scope.user_state,
-        help="The id of the question this student asked in phase 2",
+        help="The id of the question this student ask in phase 2",
     )
     phase3_data = List(
         default=[], scope=Scope.user_state,
-        help="The 9 triplets (answer id, question id, clue id) referring to what this student corrected in phase 3",
+        help="The 9 triplets (answer id, question id, clue id) referring to what this student correct in phase 3",
     )
 
 
@@ -177,7 +181,7 @@ class P3eXBlock(XBlock):
         print
 
         # On affiche une page d'erreur si il n'y a pas suffisament de donnees pour cette phase
-        if not data :
+        if (self.current_phase == 1 or self.current_phase == 3) and not data :
             print "     warning : there is not enough data for this phase"
             return self.load_view("error.html")
 
@@ -266,7 +270,7 @@ class P3eXBlock(XBlock):
 
             # ...on enleve les reponses de l'utilisateur courrant
             # /!\wrong/!\ -> d...s = [elt for elt in d...s if elt not in self.phase1_question_indexes]
-            dict_unevaluated_answers = [elt for elt in dict_unevaluated_answers ]
+            dict_unevaluated_answers = [elt for elt in dict_unevaluated_answers if elt not in self.phase1_answer_indexes ]
 
             # On verifie s'il y a assez de reponse a evaluer
             if len(dict_unevaluated_answers) < 9:
@@ -317,6 +321,9 @@ class P3eXBlock(XBlock):
             self.dict_questions[question_index]['nb_of_grade']+=1
             self.dict_questions[question_index]['n_grade'] += grade
             self.add_answer_to_evaluate(question_index, answer)
+            self.phase1_answer_indexes.append(unicode(self.max_id_answer))
+            print "     answer id add : ", self.max_id_answer
+
 
         self.current_phase = 2
         print " <-- Fin du handler"

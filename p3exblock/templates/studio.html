@@ -1,6 +1,6 @@
 <div class="p3exblock_block">
 	<div class="phase-container">
-		<h1>Enter 3 questions and answers</h1>
+		<h1>Enter at least 3 questions and answers</h1>
 
 		% for elt in data:
 		<div class="question_block">
@@ -9,7 +9,7 @@
 			<h4>Question : </h4>
 			<div class="textarea question" contentEditable="false">${elt['q']}</div>
 
-			<h4>Answer :</h4>
+			<h4>Expected answer :</h4>
 			<div class="textarea answer" contentEditable="false">${elt['r']}</div>
 		</div>
 		% endfor
