@@ -375,26 +375,41 @@ class P3eXBlock(XBlock):
 
         return self.render_template("phase4.html")
 
-    def assess_student_progress(id_student):
+    def assess_student_progress(self, id_student):
+        print " --> Assessing the progress of student n°", id_student
+
         # recuperer les 3 reponses du meme etudiant
-        for x in get_answers_of_student(ma_var):
-            pass
+        answers = self.get_answers_of_student(id_student)
+        print "     answers of this student : ", answers
 
-        # verififer si elles ont ete note 3 fois chacune
-        if self.get_nb_of_grade(answer_id) >= 3:
-            pass
+        if len(answers)<3:
+            print "     This student didn't provide 3 answers."
+            return
 
-        # faire la moyenne des evaluations pour chacune reponse
+        student_mean = float(0)
+        for a in answers.values():
+            print "     a:", a
+            # verififer si elles ont ete note 3 fois chacune
+            if a['nb_of_grade'] < 3:
+                print "     This answer has not been evaluated 3 times."
+                return
+
+            # faire la moyenne des evaluations pour chacune reponse
+            answer_mean = float(a['n_grade']) / float(a['nb_of_grade'])
+            print "     This answer was given the grade of : %s/5" % answer_mean
+            student_mean += answer_mean
 
         # raporter la note des 3 reponses en une note sur 20
+        student_mean = student_mean / float(3*5) * 20
+        print "     This student was given the grade of : %s/20" % student_mean
 
-            # g = float(self.dict_answers_to_evaluate[answer_id]['n_grade'])/float(self.dict_answers_to_evaluate[answer_id]['nb_of_grade'])
-            # self.runtime.publish(self, "grade", 
-            #                     { value: g
-            #                       max_value: 5})
-            # print "     Grade publish !"
-            # print "      answer_id : ", answer_id
-            # print "      value : ", g
+        # self.runtime.publish(self, "grade", 
+        #                     { 
+        #                         'value': student_mean,
+        #                         'max_value': 20, 
+        #                         'user_id': id_student,
+        #                     })
+        # print "     Grade publish !"
 
 
     def add_question(self, p_question_txt, p_answer_txt, p_writer_id, p_is_prof=False):
@@ -505,7 +520,7 @@ class P3eXBlock(XBlock):
         return self.dict_answers_to_evaluate[id_answer]['n_writer_id']
 
     def get_answers_of_student(self, student_id):
-        return dict(filter(lambda k: k[1]['n_writer_id']==student_id, self.dict_answers_to_evaluate.items()))
+        return dict(filter(lambda k: k[1]['n_writer_id']==unicode(student_id), self.dict_answers_to_evaluate.items()))
 
 
     def get_question_text(self, id_question):
