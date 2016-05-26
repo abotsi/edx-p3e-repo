@@ -42,6 +42,11 @@ class P3eXBlock(XBlock):
             +"and saved in the student list."
             +"Professor question ids are negatives.",
     )
+    dict_students_grade = Dict(
+        default={}, scope=Scope.user_state_summary,
+        help="The list of grade for each student, "
+            +"indexed by student_id.",
+    )
 
 # Fields specific to the professor
     studio_data = List(
@@ -148,6 +153,9 @@ class P3eXBlock(XBlock):
             data = self.get_data_phase1()
         elif (self.current_phase == 3):
             data = self.get_data_phase3()
+        elif (self.current_phase == 4):
+            self.assess_student_progress(self.runtime.user_id)
+            data = self.get_student_grade()
 
         print "     data : ", data
         print " <-- Fin"
@@ -363,17 +371,18 @@ class P3eXBlock(XBlock):
 
             self.add_grade_to_answer(answer_id, data['answer_grades'][i])
             graded_student = self.get_answer_writer(answer_id)
-            assess_student_progress(graded_student)
+            self.assess_student_progress(graded_student)
 
             self.add_grade_to_clue(question_id, clue_id, data['clue_grades'][i])
             # le cas echeant, on enregistre la nouvelle solution proposee par le correcteur
             if data['new_solutions'][i]:
                 self.add_solution(question_id, data['new_solutions'][i])
 
+        self.assess_student_progress(self.runtime.user_id)
         self.current_phase = 4
         print " <-- Fin du handler"
 
-        return self.render_template("phase4.html")
+        return self.render_template("phase4.html", self.get_student_grade() )
 
     def assess_student_progress(self, id_student):
         print " --> Assessing the progress of student n°", id_student
@@ -410,6 +419,7 @@ class P3eXBlock(XBlock):
         #                         'user_id': id_student,
         #                     })
         # print "     Grade publish !"
+        self.dict_students_grade[id_student] = student_mean
 
 
     def add_question(self, p_question_txt, p_answer_txt, p_writer_id, p_is_prof=False):
@@ -531,6 +541,12 @@ class P3eXBlock(XBlock):
 
     def get_clue_text(self, id_question, id_clue):
         return self.dict_questions[id_question]['lst_clue_answer'][id_clue]['s_text']
+
+    def get_student_grade(self):
+        if self.runtime.user_id in self.dict_students_grade:
+            return self.dict_students_grade[self.runtime.user_id]
+        else:
+            return None
 
 
     @staticmethod
