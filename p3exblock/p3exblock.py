@@ -6,7 +6,7 @@ import os.path
 from random import sample, choice, shuffle, randint
 
 from xblock.core import XBlock
-from xblock.fields import Scope, Integer, String, List, Dict
+from xblock.fields import Scope, Integer, String, List, Dict, Float
 from xblock.fragment import Fragment
 import xblock.runtime
 
@@ -41,6 +41,11 @@ class P3eXBlock(XBlock):
         help="The biggest identifier of a question submited by the professor"
             +"and saved in the student list."
             +"Professor question ids are negatives.",
+    )
+    dict_students_grade = Dict(
+        default={}, scope=Scope.user_state_summary,
+        help="The list of grade for each student, "
+            +"indexed by student_id.",
     )
 
 # Fields specific to the professor
@@ -83,6 +88,16 @@ class P3eXBlock(XBlock):
     def has_score(self):
         """ Needed for this XBlock to be graded """
         return True
+
+    # thanks to https://github.com/pmitros/DoneXBlock/blob/master/done/done.py
+    weight = Float(
+        display_name="Problem Weight",
+        help=("Defines the number of points each problem is worth. "
+              "If the value is not set, the problem is worth the sum of the "
+              "option point values."),
+        values={"min": 0, "step": .1},
+        scope=Scope.settings
+    )
 
 
 
@@ -148,6 +163,8 @@ class P3eXBlock(XBlock):
             data = self.get_data_phase1()
         elif (self.current_phase == 3):
             data = self.get_data_phase3()
+        elif (self.current_phase == 4):
+            data = self.get_data_phase4()
 
         print "     data : ", data
         print " <-- Fin"
@@ -169,7 +186,7 @@ class P3eXBlock(XBlock):
         # On ajoute dans dict_q les question de prof qui on un id plus grand que last_id_dict
         if last_id_created > self.last_id_saved:
             print
-            print "     Il y a %d nouvelles questions `profs` ! " % last_id_created - self.last_id_saved
+            print "     Il y a %d nouvelles questions `profs` ! " % (last_id_created - self.last_id_saved)
 
             # On parcourt la liste prof depuis la fin
             for new_q_p in reversed(self.studio_data):
@@ -226,8 +243,10 @@ class P3eXBlock(XBlock):
             print
 
         lst_txt = []
-        for i in self.phase1_question_indexes:
-            lst_txt.append(self.get_question_text(i))
+
+        if self.phase1_question_indexes:
+            for i in self.phase1_question_indexes:
+                lst_txt.append(self.get_question_text(i))
 
         return lst_txt
 
@@ -262,14 +281,39 @@ class P3eXBlock(XBlock):
             print
 
         data = []
-        for e in self.phase3_data:
-            answer_text = self.get_answer_text( e['answer_id'] )
-            question_text = self.get_question_text( e['question_id'] )
-            clue_text = self.get_clue_text( e['question_id'], e['clue_id'] )
-
-            data.append({'text':question_text, 'clue_answer':clue_text, 'answer_to_evaluate':answer_text})
+        if self.phase3_data:
+            for e in self.phase3_data:
+                answer_text = self.get_answer_text( e['answer_id'] )
+                question_text = self.get_question_text( e['question_id'] )
+                clue_text = self.get_clue_text( e['question_id'], e['clue_id'] )
+                
+                data.append({'text':question_text, 'clue_answer':clue_text, 'answer_to_evaluate':answer_text})
 
         return data
+
+    def get_data_phase4(self, context=None):
+        """ 
+        The last phase of P3E, computing the grade of the current student, 
+        then publishing and returning it if appropriate
+        """
+
+        print
+        print "     Phase 3: start computing current grade..."
+
+        self.assess_student_progress(self.runtime.user_id)
+        grade = self.get_student_grade()
+        if not grade:
+            print "     No grade for student : ", self.runtime.user_id
+        else:
+            print "     The grade for student ", self.runtime.user_id, " is : ", grade
+
+            self.runtime.publish(self, "grade", 
+                                { 
+                                    'value': grade,
+                                    'max_value': 20, 
+                                })
+            print "     Grade publish !"
+        return grade
 
     def select_answers_phase3(self):        
             # On recupere toutes les reponses non evaluees en enlevant les reponses de l'utilisateur courant
@@ -363,38 +407,48 @@ class P3eXBlock(XBlock):
 
             self.add_grade_to_answer(answer_id, data['answer_grades'][i])
             graded_student = self.get_answer_writer(answer_id)
-            assess_student_progress(graded_student)
+            self.assess_student_progress(graded_student)
 
             self.add_grade_to_clue(question_id, clue_id, data['clue_grades'][i])
             # le cas echeant, on enregistre la nouvelle solution proposee par le correcteur
             if data['new_solutions'][i]:
                 self.add_solution(question_id, data['new_solutions'][i])
 
+        data = self.get_data_phase4()
         self.current_phase = 4
         print " <-- Fin du handler"
 
-        return self.render_template("phase4.html")
+        return self.render_template("phase4.html", data)
 
-    def assess_student_progress(id_student):
+    def assess_student_progress(self, id_student):
+        print " --> Assessing the progress of student n°", id_student
+
         # recuperer les 3 reponses du meme etudiant
-        for x in get_answers_of_student(ma_var):
-            pass
+        answers = self.get_answers_of_student(id_student)
+        print "     answers of this student : ", answers
 
-        # verififer si elles ont ete note 3 fois chacune
-        if self.get_nb_of_grade(answer_id) >= 3:
-            pass
+        if len(answers)<3:
+            print "     This student didn't provide 3 answers."
+            return
 
-        # faire la moyenne des evaluations pour chacune reponse
+        student_mean = float(0)
+        for a in answers.values():
+            print "     a:", a
+            # verififer si elles ont ete note 3 fois chacune
+            if a['nb_of_grade'] < 3:
+                print "     This answer has not been evaluated 3 times."
+                return
+
+            # faire la moyenne des evaluations pour chacune reponse
+            answer_mean = float(a['n_grade']) / float(a['nb_of_grade'])
+            print "     This answer was given the grade of : %s/5" % answer_mean
+            student_mean += answer_mean
 
         # raporter la note des 3 reponses en une note sur 20
+        student_mean = student_mean / float(3*5) * 20
+        print "     This student was given the grade of : %s/20" % student_mean
 
-            # g = float(self.dict_answers_to_evaluate[answer_id]['n_grade'])/float(self.dict_answers_to_evaluate[answer_id]['nb_of_grade'])
-            # self.runtime.publish(self, "grade", 
-            #                     { value: g
-            #                       max_value: 5})
-            # print "     Grade publish !"
-            # print "      answer_id : ", answer_id
-            # print "      value : ", g
+        self.dict_students_grade[id_student] = student_mean
 
 
     def add_question(self, p_question_txt, p_answer_txt, p_writer_id, p_is_prof=False):
@@ -505,7 +559,7 @@ class P3eXBlock(XBlock):
         return self.dict_answers_to_evaluate[id_answer]['n_writer_id']
 
     def get_answers_of_student(self, student_id):
-        return dict(filter(lambda k: k[1]['n_writer_id']==student_id, self.dict_answers_to_evaluate.items()))
+        return dict(filter(lambda k: k[1]['n_writer_id']==unicode(student_id), self.dict_answers_to_evaluate.items()))
 
 
     def get_question_text(self, id_question):
@@ -516,6 +570,12 @@ class P3eXBlock(XBlock):
 
     def get_clue_text(self, id_question, id_clue):
         return self.dict_questions[id_question]['lst_clue_answer'][id_clue]['s_text']
+
+    def get_student_grade(self):
+        if self.runtime.user_id in self.dict_students_grade:
+            return self.dict_students_grade[self.runtime.user_id]
+        else:
+            return None
 
 
     @staticmethod

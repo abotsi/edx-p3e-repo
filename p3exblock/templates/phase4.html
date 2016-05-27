@@ -1,5 +1,10 @@
 <div class="p3exblock_block">
 	<div id="phase4" class="phase-container">
 		<h1>Félicitations, c'est terminé ! </h1>
+		% if not data:
+			<p>Votre travail n'a pas encore été évalué par vos pairs, veuillez revenir plus tard.</p>
+		% else:
+			<p>Votre travail a été évalué. Vous avez reçu la note : <span>${data}</span> / 20.</p>
+		% endif
 	</div>
 </div>
