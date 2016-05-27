@@ -6,7 +6,7 @@ import os.path
 from random import sample, choice, shuffle, randint
 
 from xblock.core import XBlock
-from xblock.fields import Scope, Integer, String, List, Dict
+from xblock.fields import Scope, Integer, String, List, Dict, Float
 from xblock.fragment import Fragment
 import xblock.runtime
 
@@ -88,6 +88,16 @@ class P3eXBlock(XBlock):
     def has_score(self):
         """ Needed for this XBlock to be graded """
         return True
+
+    # thanks to https://github.com/pmitros/DoneXBlock/blob/master/done/done.py
+    weight = Float(
+        display_name="Problem Weight",
+        help=("Defines the number of points each problem is worth. "
+              "If the value is not set, the problem is worth the sum of the "
+              "option point values."),
+        values={"min": 0, "step": .1},
+        scope=Scope.settings
+    )
 
 
 
@@ -439,13 +449,6 @@ class P3eXBlock(XBlock):
         print "     This student was given the grade of : %s/20" % student_mean
 
         self.dict_students_grade[id_student] = student_mean
-        # self.runtime.publish(self, "grade", 
-        #                     { 
-        #                         'value': student_mean,
-        #                         'max_value': 20, 
-        #                         'user_id': id_student,
-        #                     })
-        # print "     Grade publish !"
 
 
     def add_question(self, p_question_txt, p_answer_txt, p_writer_id, p_is_prof=False):
