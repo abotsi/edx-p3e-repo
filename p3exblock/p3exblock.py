@@ -154,8 +154,7 @@ class P3eXBlock(XBlock):
         elif (self.current_phase == 3):
             data = self.get_data_phase3()
         elif (self.current_phase == 4):
-            self.assess_student_progress(self.runtime.user_id)
-            data = self.get_student_grade()
+            data = self.get_data_phase4()
 
         print "     data : ", data
         print " <-- Fin"
@@ -279,6 +278,30 @@ class P3eXBlock(XBlock):
 
         return data
 
+    def get_data_phase4(self, context=None):
+        """ 
+        The last phase of P3E, computing the grade of the current student, 
+        then publishing and returning it if appropriate
+        """
+
+        print
+        print "     Phase 3: start computing current grade..."
+
+        self.assess_student_progress(self.runtime.user_id)
+        grade = self.get_student_grade()
+        if not grade:
+            print "     No grade for student : ", self.runtime.user_id
+        else:
+            print "     The grade for student ", self.runtime.user_id, " is : ", grade
+
+            self.runtime.publish(self, "grade", 
+                                { 
+                                    'value': grade,
+                                    'max_value': 20, 
+                                })
+            print "     Grade publish !"
+        return grade
+
     def select_answers_phase3(self):        
             # On recupere toutes les reponses non evaluees en enlevant les reponses de l'utilisateur courant
             selection = [elt for elt in self.get_unevaluated_answers() if elt not in self.phase1_answer_indexes ]
@@ -378,11 +401,11 @@ class P3eXBlock(XBlock):
             if data['new_solutions'][i]:
                 self.add_solution(question_id, data['new_solutions'][i])
 
-        self.assess_student_progress(self.runtime.user_id)
+        data = self.get_data_phase4()
         self.current_phase = 4
         print " <-- Fin du handler"
 
-        return self.render_template("phase4.html", self.get_student_grade() )
+        return self.render_template("phase4.html", data)
 
     def assess_student_progress(self, id_student):
         print " --> Assessing the progress of student n°", id_student
@@ -412,6 +435,7 @@ class P3eXBlock(XBlock):
         student_mean = student_mean / float(3*5) * 20
         print "     This student was given the grade of : %s/20" % student_mean
 
+        self.dict_students_grade[id_student] = student_mean
         # self.runtime.publish(self, "grade", 
         #                     { 
         #                         'value': student_mean,
@@ -419,7 +443,6 @@ class P3eXBlock(XBlock):
         #                         'user_id': id_student,
         #                     })
         # print "     Grade publish !"
-        self.dict_students_grade[id_student] = student_mean
 
 
     def add_question(self, p_question_txt, p_answer_txt, p_writer_id, p_is_prof=False):
