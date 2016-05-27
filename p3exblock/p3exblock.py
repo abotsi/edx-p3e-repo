@@ -176,7 +176,7 @@ class P3eXBlock(XBlock):
         # On ajoute dans dict_q les question de prof qui on un id plus grand que last_id_dict
         if last_id_created > self.last_id_saved:
             print
-            print "     Il y a %d nouvelles questions `profs` ! " % last_id_created - self.last_id_saved
+            print "     Il y a %d nouvelles questions `profs` ! " % (last_id_created - self.last_id_saved)
 
             # On parcourt la liste prof depuis la fin
             for new_q_p in reversed(self.studio_data):
@@ -233,8 +233,10 @@ class P3eXBlock(XBlock):
             print
 
         lst_txt = []
-        for i in self.phase1_question_indexes:
-            lst_txt.append(self.get_question_text(i))
+
+        if self.phase1_question_indexes:
+            for i in self.phase1_question_indexes:
+                lst_txt.append(self.get_question_text(i))
 
         return lst_txt
 
@@ -269,12 +271,13 @@ class P3eXBlock(XBlock):
             print
 
         data = []
-        for e in self.phase3_data:
-            answer_text = self.get_answer_text( e['answer_id'] )
-            question_text = self.get_question_text( e['question_id'] )
-            clue_text = self.get_clue_text( e['question_id'], e['clue_id'] )
-
-            data.append({'text':question_text, 'clue_answer':clue_text, 'answer_to_evaluate':answer_text})
+        if self.phase3_data:
+            for e in self.phase3_data:
+                answer_text = self.get_answer_text( e['answer_id'] )
+                question_text = self.get_question_text( e['question_id'] )
+                clue_text = self.get_clue_text( e['question_id'], e['clue_id'] )
+                
+                data.append({'text':question_text, 'clue_answer':clue_text, 'answer_to_evaluate':answer_text})
 
         return data
 
